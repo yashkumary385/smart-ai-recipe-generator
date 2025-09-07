@@ -1,5 +1,11 @@
 import express from "express";
 import Recipe from "../models/Recipe.js";
+import dotenv from "dotenv";
+import { upload } from "../middlewares/multer.js";
+import fs from "fs"
+import axios from "axios";
+
+dotenv.config();
 
 const router = express.Router();
 
@@ -35,21 +41,53 @@ router.get("/:id", async (req, res) => {
 
 
 
-router.post("/match", async (req, res) => {
-    const { ingredients } = req.body;// eg ["bread","egg","yogurt"]
-    console.log(req.body);
+router.post("/match",upload.single("image"), async (req, res) => {
+    // const { ingredients } = req.body;// eg ["bread","egg","yogurt"]
+    // console.log(req.body);
+
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No image uploaded" });
+    }
+
+    // Load image file into buffer
+    const imageBuffer = fs.readFileSync(req.file.path);
+
+    // Hugging Face Inference API request
+    const response = await axios.post(
+      "https://api-inference.huggingface.co/models/google/vit-base-patch16-224",
+      imageBuffer,
+      {
+        headers: {
+          "Authorization": `Bearer ${process.env.HF_API_KEY}`,
+          "Content-Type": "application/octet-stream"
+        },
+      }
+    );
+
+    // Response example: [{ "label": "tomato", "score": 0.96 }, ...]
+    const ingredients = response.data
+      .filter(pred => pred.score > 0.3)   // keep only confident predictions
+      .map(pred => pred.label.toLowerCase());
+
+   
+
+    // Cleanup temporary file
+    fs.unlinkSync(req.file.path);
+  
+
+
     
     if (!ingredients || ingredients.length == 0) {
         res.status(404).json({ message: "Provie the ingredients required to fetch recipes" });
     }
-    try {
          const recipes = await Recipe.find({});
     const matches = recipes.map(recipe => { /// we take out all the recipe ingredinets from the recipes 
         const recipeIngredients = recipe.ingredients.map(i => i.name.toLowerCase())
         const matchCount = recipeIngredients.filter(ingredient => ingredients.includes(ingredient.toLowerCase())).length;
         return { recipe, matchCount }; // the recipe we wanted and the number of the matched ingredient there were they form the array 
     })
-    console.log(matches,"this is matches");
+    // console.log(matches,"this is matches");
     
 
     const filteredMatches = matches.filter(match => match.matchCount > 0);
@@ -65,10 +103,12 @@ console.log(filteredMatches);
         cookingTime: m.recipe.cookingTime,
         matchCount: m.matchCount,
         totalIngredients: m.recipe.ingredients.length,
+        ingerdients:m.recipe.ingredients
     })))
-    } catch (error) {
-            res.status(500).json({ error: err.message });
-    }
+    } catch (err) {
+    console.error(err.response?.data || err.message);
+    res.status(500).json({ error: "Ingredient recognition failed" });
+  }
 })
 
 // get the recipe that we clicked we get much larger payload from here we gets the whole recipe payload 

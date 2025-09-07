@@ -1,8 +1,12 @@
 import express from "express";
 import axios from "axios";
+import dotenv from "dotenv";
+
 import fs from "fs";
-import { upload } from "../middleware/multer";
+import { upload } from "../middlewares/multer.js";
+dotenv.config();
 const router = express.Router();
+console.log(process.env.HF_API_KEY);
 
 // POST /api/ingredients/from-image
 router.post("/image-detection", upload.single("image"), async (req, res) => {

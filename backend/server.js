@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import recipeRoutes from "./routes/recipeRoutes.js"
 import userRoutes from "./routes/userRoutes.js"
+import imageRoutes from './routes/imageDetectionRoutes.js'
 dotenv.config();
 
 const app = express();
@@ -15,6 +16,8 @@ app.use("/api/recipes",recipeRoutes)
 
 // user routes
 app.use("/api/users",userRoutes)
+// image routes 
+app.use("/api/images",imageRoutes)
 
 console.log(process.env.MONGODB_URI);
 
