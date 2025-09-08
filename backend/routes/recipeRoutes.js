@@ -41,10 +41,10 @@ router.get("/:id", async (req, res) => {
 
 
 
-router.post("/match",upload.single("image"), async (req, res) => {
+router.post("/match-detection",upload.single("image"), async (req, res) => {
     // const { ingredients } = req.body;// eg ["bread","egg","yogurt"]
     // console.log(req.body);
-
+console.log("image route hitt")
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No image uploaded" });
@@ -123,6 +123,50 @@ router.get("/:id", async (req, res) => {
     }
 })
 
+router.post("/match",async(req,res)=>{
+  try {
+    console.log('match route hiitt');
+    
+      const ingredients = req.body;// eg ["bread","egg","yogurt"]
+           console.log(ingredients);
+           console.log(req.body)
+           
+    
+    if (!ingredients || ingredients.length == 0) {
+        res.status(404).json({ message: "Provide the ingredients required to fetch recipes" });
+    }
+         const recipes = await Recipe.find({});
+    const matches = recipes.map(recipe => { /// we take out all the recipe ingredinets from the recipes 
+        const recipeIngredients = recipe.ingredients.map(i => i.name.toLowerCase())
+        const matchCount = recipeIngredients.filter(ingredient => ingredients.includes(ingredient.toLowerCase())).length;
+        return { recipe, matchCount }; // the recipe we wanted and the number of the matched ingredient there were they form the array 
+    })
+    // console.log(matches,"this is matches");
+    
 
+    const filteredMatches = matches.filter(match => match.matchCount > 0);
+console.log(filteredMatches);
+
+    filteredMatches.sort((a, b) => b.matchCount - a.matchCount) // sorting our matches array 
+
+    res.status(200).json(filteredMatches.map(m => ({
+        id: m.recipe._id,
+        title: m.recipe.title,
+        cusine: m.recipe.cuisine,
+        difficulty: m.recipe.difficulty,
+        cookingTime: m.recipe.cookingTime,
+        matchCount: m.matchCount,
+        totalIngredients: m.recipe.ingredients.length,
+        ingerdients:m.recipe.ingredients
+    })))
+    } catch (err) {
+    console.error(err.response?.data || err.message);
+    res.status(500).json({ error: err });
+  }
+  
+   
+
+
+})
 
 export default router
