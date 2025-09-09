@@ -68,8 +68,8 @@ router.post("/ratings",async(req,res)=>{
             if (rating < 1 || rating > 5) {
       return res.status(400).json({ error: "Rating must be between 1 and 5" });
     }
-    const filter= {recipeId: recipeId}
-        const recipe = await Recipe.find(filter);
+
+        const recipe = await Recipe.findById(recipeId);
         console.log(recipe)
            if (!recipe) return res.status(404).json({ error: "Recipe not found" });
         // if(!recipe.ratings.includes(id)){

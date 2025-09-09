@@ -12,6 +12,7 @@ import { getResultRecipe,giveRating } from '../api';
 import TextField from '@mui/material/TextField';
 import { toast } from 'react-toastify';
 
+
 // const card = (
 
 // );
@@ -127,6 +128,9 @@ const handleRating =async (id)=>{
   <TextField id="outlined-basic" label="Feedback" variant="outlined"   sx={{ mt: 3 }} onChange={(e)=> setRating(e.target.value)}  />
 </CardContent>
     <Button variant="outlined" onClick={()=>handleRating(recipe._id)}>Give rating</Button>
+      <Typography variant="body2" color="initial">
+        Ratings: {recipe?.ratings.map(r => r.rating).join(", ") || "No ratings yet."}
+      </Typography>
 
                 </Card>
 

@@ -5,7 +5,13 @@ import cors from "cors";
 import recipeRoutes from "./routes/recipeRoutes.js"
 import userRoutes from "./routes/userRoutes.js"
 import imageRoutes from './routes/imageDetectionRoutes.js'
-dotenv.config();
+
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config({ path: ".env.development" });
+}
+
+
+
 
 const app = express();
 app.use(cors());

@@ -134,8 +134,8 @@ try {
             onChange={(e) => setImage(e.target.files[0])}
           />
         </Button>
-          <Button variant="outlined" size="medium" sx={{ borderColor: "green" }} onClick={handleImage}>
-          <Typography variant="h7" color="success">Search</Typography>
+          <Button variant="outlined" size="medium" sx={{ borderColor: "green" , mb:3}} onClick={handleImage}>
+          <Typography variant="h7" color="success" >Search</Typography>
         </Button>
       </Stack>
 

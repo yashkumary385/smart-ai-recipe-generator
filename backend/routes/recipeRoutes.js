@@ -21,8 +21,8 @@ router.get("/", async (req, res) => {
 
         const recipes = await Recipe.find(filter);
         res.json(recipes);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
 
@@ -122,7 +122,7 @@ router.get("/:id", async (req, res) => {
          const recipe = await Recipe.findById(id);
     res.status(200).json(recipe)
     } catch (error) {
-            res.status(500).json({ error: err.message });
+            res.status(500).json({ error: error.message });
     }
 })
 
