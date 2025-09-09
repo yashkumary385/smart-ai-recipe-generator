@@ -8,15 +8,16 @@ import CardContent from '@mui/material/CardContent';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography'
 import { useParams } from 'react-router-dom';
-import { getResultRecipe } from '../api';
-
-
+import { getResultRecipe,giveRating } from '../api';
+import TextField from '@mui/material/TextField';
+import { toast } from 'react-toastify';
 
 // const card = (
 
 // );
 export const RecipePage = () => {
-
+  
+const [rating ,setRating] = useState("")
     const [recipe, setRecipe] = useState(null);
     const [ingredients, setIngredients] = useState([]);
     const { id } = useParams()
@@ -33,6 +34,23 @@ export const RecipePage = () => {
         }
         handleRecipe()
     }, [])
+
+const handleRating =async (id)=>{
+  console.log(id)
+  try {
+    const res = await giveRating(rating,id)
+    console.log(res);
+    toast.success("Rating Given")
+  } catch (error) {
+    console.log(error)
+    toast.error(error.response.data)
+  }
+}
+
+
+
+
+
 
     return (
         <Stack spacing={3} direction="row" flexWrap="wrap"
@@ -105,7 +123,10 @@ export const RecipePage = () => {
       </Typography>
     )}
   </Box>
+
+  <TextField id="outlined-basic" label="Feedback" variant="outlined"   sx={{ mt: 3 }} onChange={(e)=> setRating(e.target.value)}  />
 </CardContent>
+    <Button variant="outlined" onClick={()=>handleRating(recipe._id)}>Give rating</Button>
 
                 </Card>
 

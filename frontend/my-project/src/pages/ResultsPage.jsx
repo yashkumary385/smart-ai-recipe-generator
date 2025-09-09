@@ -43,7 +43,7 @@ const navigate = useNavigate()
 
 
 {recipes && recipes.map((recipe, index) => (
-  <Card key={index} sx={{ maxWidth: 345, mb: 3, ml: 2 }}>
+  <Card key={index} sx={{ maxWidth: 345, mb: 3, ml: 2 ,mt:3}}>
     <CardHeader
     sx={{ fontWeight: 'bold' }}
       avatar={

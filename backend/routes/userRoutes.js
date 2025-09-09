@@ -59,20 +59,24 @@ router.post("/:id/favourites",async(req,res)=>{
 })
 
 
-router.post("/:id/ratings",async(req,res)=>{
+router.post("/ratings",async(req,res)=>{
     try {
-        const {id} = req.params.id;
+        // const {id} = req.params.id;
+        console.log("hittt")
           const {recipeId , rating} = req.body;
+          console.log(recipeId,rating)
             if (rating < 1 || rating > 5) {
       return res.status(400).json({ error: "Rating must be between 1 and 5" });
     }
-        const recipe = await Recipe.findById(recipeId);
+    const filter= {recipeId: recipeId}
+        const recipe = await Recipe.find(filter);
+        console.log(recipe)
            if (!recipe) return res.status(404).json({ error: "Recipe not found" });
-        if(!recipe.ratings.includes(id)){
-        recipe.ratings.push({userId:id , rating:rating})
-        await recipe.save();
-        }
-
+        // if(!recipe.ratings.includes(id)){
+        recipe.ratings.push({ rating:rating})
+      const ratings=  await recipe.save();
+        // }
+          res.status(200).json(ratings)
     } catch (error) {
         res.status(404).json(error)
         

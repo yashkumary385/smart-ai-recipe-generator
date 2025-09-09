@@ -41,75 +41,78 @@ router.get("/:id", async (req, res) => {
 
 
 
-router.post("/match-detection",upload.single("image"), async (req, res) => {
-    // const { ingredients } = req.body;// eg ["bread","egg","yogurt"]
-    // console.log(req.body);
-console.log("image route hitt")
+router.post("/match-detection", upload.single("image"), async (req, res) => {
+  console.log("hittt")
+  console.log(req.file)
+  let imagePath = null;
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No image uploaded" });
     }
 
-    // Load image file into buffer
-    const imageBuffer = fs.readFileSync(req.file.path);
+    imagePath = req.file.path;
+    console.log(imagePath)
+    const imageBuffer = fs.readFileSync(imagePath);
 
-    // Hugging Face Inference API request
     const response = await axios.post(
       "https://api-inference.huggingface.co/models/google/vit-base-patch16-224",
       imageBuffer,
       {
         headers: {
-          "Authorization": `Bearer ${process.env.HF_API_KEY}`,
-          "Content-Type": "application/octet-stream"
+          Authorization: `Bearer ${process.env.HF_API_KEY}`,
+          "Content-Type": "application/octet-stream",
         },
       }
     );
 
-    // Response example: [{ "label": "tomato", "score": 0.96 }, ...]
     const ingredients = response.data
-      .filter(pred => pred.score > 0.3)   // keep only confident predictions
-      .map(pred => pred.label.toLowerCase());
+      .filter((pred) => pred.score > 0.3)
+      .map((pred) => pred.label.toLowerCase());
 
-   
-
-    // Cleanup temporary file
-    fs.unlinkSync(req.file.path);
-  
-
-
-    
-    if (!ingredients || ingredients.length == 0) {
-        res.status(404).json({ message: "Provie the ingredients required to fetch recipes" });
+      console.log(ingredients,"thi sis inge")
+    if (!ingredients || ingredients.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "Provide the ingredients required to fetch recipes" });
     }
-         const recipes = await Recipe.find({});
-    const matches = recipes.map(recipe => { /// we take out all the recipe ingredinets from the recipes 
-        const recipeIngredients = recipe.ingredients.map(i => i.name.toLowerCase())
-        const matchCount = recipeIngredients.filter(ingredient => ingredients.includes(ingredient.toLowerCase())).length;
-        return { recipe, matchCount }; // the recipe we wanted and the number of the matched ingredient there were they form the array 
-    })
-    // console.log(matches,"this is matches");
-    
 
-    const filteredMatches = matches.filter(match => match.matchCount > 0);
-console.log(filteredMatches);
+    const recipes = await Recipe.find({});
+    const matches = recipes.map((recipe) => {
+      const recipeIngredients = recipe.ingredients.map((i) =>
+        i.name.toLowerCase()
+      );
+      const matchCount = recipeIngredients.filter((ingredient) =>
+        ingredients.includes(ingredient)
+      ).length;
 
-    filteredMatches.sort((a, b) => b.matchCount - a.matchCount) // sorting our matches array 
+      return { recipe, matchCount };
+    });
 
-    res.status(200).json(filteredMatches.map(m => ({
+    const filteredMatches = matches
+      .filter((match) => match.matchCount > 0)
+      .sort((a, b) => b.matchCount - a.matchCount);
+
+    res.status(200).json(
+      filteredMatches.map((m) => ({
         id: m.recipe._id,
         title: m.recipe.title,
-        cusine: m.recipe.cuisine,
+        cuisine: m.recipe.cuisine,
         difficulty: m.recipe.difficulty,
         cookingTime: m.recipe.cookingTime,
         matchCount: m.matchCount,
         totalIngredients: m.recipe.ingredients.length,
-        ingerdients:m.recipe.ingredients
-    })))
-    } catch (err) {
+        matchPercentage:
+          (m.matchCount / m.recipe.ingredients.length) * 100,
+        ingredients: m.recipe.ingredients,
+      }))
+    );
+  } catch (err) {
     console.error(err.response?.data || err.message);
     res.status(500).json({ error: "Ingredient recognition failed" });
+  } finally {
+    if (imagePath) fs.unlinkSync(imagePath);
   }
-})
+});
 
 // get the recipe that we clicked we get much larger payload from here we gets the whole recipe payload 
 // can be removed later on beacuse it is replicated
@@ -166,6 +169,45 @@ console.log(filteredMatches);
   
    
 
+
+})
+
+
+router.post("/dietary",async(req,res)=>{
+  console.log("dietary route hitt");
+  try {
+      const {dietary} = req.body;
+      console.log(dietary);
+   if(dietary.length==0){
+    return res.status(400).json({error:"Please provide the dietary filter"})
+   }
+   const recipes = await Recipe.find({});
+   const matches = recipes.map((recipe)=>{
+    const dietaryName = recipe.dietary.map((die)=>{
+     return die.toLowerCase();
+    })
+    // console.log(dietaryName);
+    const match = dietaryName.filter((name )=> dietary.includes(name.toLowerCase())).length
+    return {recipe,match}
+   })
+// console.log(matches);
+
+const filteredMatches = matches.filter(match=>match.match>0);
+// console.log(filteredMatches);
+
+   res.status(200).json(filteredMatches.map(m => ({
+        id: m.recipe._id,
+        title: m.recipe.title,
+        cusine: m.recipe.cuisine,
+        difficulty: m.recipe.difficulty,
+        cookingTime: m.recipe.cookingTime,
+        matchCount: m.matchCount,
+        totalIngredients: m.recipe.ingredients.length,
+        ingerdients:m.recipe.ingredients
+    })))
+  } catch (error) {
+    res.status(400).json(error)
+  }
 
 })
 

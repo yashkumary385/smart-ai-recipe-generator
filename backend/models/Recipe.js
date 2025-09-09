@@ -16,7 +16,7 @@ const recipeSchema = new mongoose.Schema({
   cookingTime: Number, // in minutes
   dietary: [String], // e.g. ["vegetarian", "gluten-free"]
   nutrition: nutritionSchema,
-  ratings: [{ userId: String, rating: Number }],
+  ratings: [{ rating: Number }],
 });
 
 export default mongoose.model("Recipe", recipeSchema);
