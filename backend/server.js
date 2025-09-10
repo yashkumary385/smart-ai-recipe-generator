@@ -6,15 +6,21 @@ import recipeRoutes from "./routes/recipeRoutes.js"
 import userRoutes from "./routes/userRoutes.js"
 import imageRoutes from './routes/imageDetectionRoutes.js'
 
-if (process.env.NODE_ENV !== "production") {
+if (process.env.NODE_ENV === "production") {
+  dotenv.config({ path: ".env.production" });
+} else {
   dotenv.config({ path: ".env.development" });
 }
 
+console.log("NODE_ENV =", process.env.NODE_ENV);
+console.log("Mongo URI =", process.env.MONGODB_URI);
 
 
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin:process.env.CORS_ORIGIN
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
